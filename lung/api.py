@@ -19,7 +19,6 @@ def analysis():
 
     with tempfile.TemporaryFile(mode='w+b', suffix='.jpg') as fobj:
         origin_name = f"{uuid.uuid4()}-origin.jpg"
-
         upload_img.save(fobj)
         im = Image.open(fobj)
         analysis_dict = analyze_one(im, 0)
