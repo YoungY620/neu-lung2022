@@ -1,7 +1,9 @@
+import os
+import re
 import uuid
-import cv2 as cv
 
-import os 
+import cv2 as cv
+from sqlalchemy.types import NVARCHAR, Float, Integer
 
 
 def _draw_one_box(draw_img, bbox, label: str,  label_color, 
@@ -63,3 +65,28 @@ def draw_boxes(analysis_dict, np_img, save=True, show=False, save_dir=None):
         cv.imwrite(os.path.join(save_dir, together_name), np_img_cp)
         analysis_dict['together_img'] = f"data/tmp/{together_name}"
     
+
+def auto_increase_filepath(path):
+    directory, file_name = os.path.split(path)
+    while os.path.isfile(path):
+        pattern = '(\d+)\)\.'
+        if re.search(pattern, file_name) is None:
+            file_name = file_name.replace('.', '(0).')
+        else:
+            current_number = int(re.findall(pattern, file_name)[-1])
+            new_number = current_number + 1
+            file_name = file_name.replace(f'({current_number}).', f'({new_number}).')
+        path = os.path.join(directory + os.sep + file_name)
+    return file_name
+
+
+def map_types(df):
+    dtypedict = {}
+    for i, j in zip(df.columns, df.dtypes):
+        if "object" in str(j):
+            dtypedict.update({i: NVARCHAR(length=255)})
+        if "float" in str(j):
+            dtypedict.update({i: Float(precision=2, asdecimal=True)})
+        if "int" in str(j):
+            dtypedict.update({i: Integer()})
+    return dtypedict

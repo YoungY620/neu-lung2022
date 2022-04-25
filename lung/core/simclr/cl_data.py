@@ -5,7 +5,7 @@ from torchvision.transforms import transforms
 import numpy as np
 from PIL import Image
 
-from lung.core.regressor.transforms import GaussianBlur, AddCannyEdgeLayer, get_simclr_pipeline_transform
+from lung.core.simclr.transforms import GaussianBlur, AddCannyEdgeLayer, get_simclr_pipeline_transform
 
 
 def get_filelist(dir, filter=lambda filename:(filename.split("-")[1] == "100")):
