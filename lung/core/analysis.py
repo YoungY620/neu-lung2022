@@ -31,7 +31,7 @@ def analyze_one(img: Image, confidence=0.5) -> Dict[str, Any]:
         if d['confidence'] < confidence: continue
         
         indexes = []
-        bbox = d['xmin'], d['ymin'], d['xmax'], d['ymax']
+        bbox = [d['xmin'], d['ymin'], d['xmax'], d['ymax']]
         if d['name'] == 'bronchus':
             res_dict['bronchus'].append(bbox)
             res_dict['b_conf'].append(d['confidence'])

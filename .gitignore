@@ -139,4 +139,10 @@ cython_debug/
 
 test.py
 tmp.jpg
-lung/core/models
+lung/core/models/*
+lung/data/*
+!lung/data/tmp/example.jpg
+102-400-1.jpg
+np_data.zip
+res.jpg
+tar.jpg
