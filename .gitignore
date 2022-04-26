@@ -142,3 +142,6 @@ lung/core/models/*
 lung/data/*
 !lung/data/tmp/example.jpg
 .vscode
+bronchus.csv
+overall.csv
+vessel.csv

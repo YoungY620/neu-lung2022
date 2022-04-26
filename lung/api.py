@@ -10,7 +10,7 @@ import pandas as pd
 from flask import Blueprint, jsonify, make_response, request
 from PIL import Image
 
-from lung.core.analyzer import analyze_one, train_all
+from lung.core.analyze import analyze_one, train_all
 from lung.utils import auto_increase_filepath, draw_boxes
 from lung import db
 from lung.core.data import store_data, DetectionClass
@@ -23,7 +23,8 @@ def analysis():
     upload_img = request.files.get('image')
     confidence = request.form.get('confidence')
     confidence = float(confidence) if confidence else 0
-    if upload_img == None: return make_response(jsonify({"msg": "a image file is needed."}), 400)
+    if upload_img == None:
+        return make_response(jsonify({"msg": "a image file is needed."}), 400)
     # TODO 检查文件类型
 
     tmp_dir = os.path.join(os.path.dirname(__file__), "data/tmp")
@@ -33,8 +34,8 @@ def analysis():
     im = Image.open(upload_img)
     analysis_dict = analyze_one(im, confidence)
     np_im = np.array(im)
-    
-    draw_boxes(analysis_dict, np_im, save=True, save_dir=tmp_dir)    
+
+    draw_boxes(analysis_dict, np_im, save=True, save_dir=tmp_dir)
     return make_response(jsonify(analysis_dict), 200)
 
 
@@ -50,7 +51,7 @@ def show_photo(file):
         response = make_response(image_data)
         response.headers['Content-Type'] = 'image/jpg'
         return response
-    
+
     return make_response(jsonify({"msg": "error"}), 400)
 
 
@@ -62,21 +63,26 @@ def import_data():
     v_label, b_label, overall_label: 记录所有标注信息的 *.csv 文件. 与数据库表列一致
     drop_before: 是否覆盖之前的所有数据
     '''
-    csvtmp_dir = os.path.join(os.path.dirname(__file__), f"data/tmp/__csv-{uuid.uuid4()}__")
-    ziptmp_dir = os.path.join(os.path.dirname(__file__), f'data/tmp/__zip-{uuid.uuid4()}__')
+    csvtmp_dir = os.path.join(os.path.dirname(
+        __file__), f"data/tmp/__csv-{uuid.uuid4()}__")
+    ziptmp_dir = os.path.join(os.path.dirname(
+        __file__), f'data/tmp/__zip-{uuid.uuid4()}__')
     os.makedirs(csvtmp_dir, exist_ok=True)
     os.makedirs(ziptmp_dir, exist_ok=True)
     try:
         error_response, datafile, labelfiles = _check_attachments(csvtmp_dir)
         drop_before = (request.form.get("drop_before").lower() == "true")
-        if error_response: return error_response
+        if error_response:
+            return error_response
         store_data(datafile, labelfiles, drop_before, ziptmp_dir)
     except:
         return make_response(500)
     finally:
-        if os.path.isdir(csvtmp_dir): shutil.rmtree(csvtmp_dir)
-        if os.path.isdir(ziptmp_dir): shutil.rmtree(ziptmp_dir)
-        
+        if os.path.isdir(csvtmp_dir):
+            shutil.rmtree(csvtmp_dir)
+        if os.path.isdir(ziptmp_dir):
+            shutil.rmtree(ziptmp_dir)
+
     return make_response(jsonify({"msg": "ok"}), 200)
 
 
@@ -86,26 +92,30 @@ def _check_attachments(tmp_dir):
     indexes = [DetectionClass.Vessel, DetectionClass.Bronchus, "overall"]
     labelfiles = {}
     for ind in indexes:
+        print(f"saving {ind}")
         path = os.path.join(tmp_dir, f"{ind}-{uuid.uuid4()}.csv")
         request.files.get(ind).save(path)
         labelfiles[ind] = path
-        
-    if not datafile: 
-        error_response =  make_response(jsonify({"msg": "file 'data' is missing."}), 400)
+
+    if not datafile:
+        error_response = make_response(
+            jsonify({"msg": "file 'data' is missing."}), 400)
     error_msg = None
 
     # whether exists
     for k, v in labelfiles.items():
         if v == None:
             error_msg = f"{error_msg}, {k}" if error_msg else k
-    if error_msg: 
-        error_response =  make_response(jsonify({"msg": f"following label files are missing: \n{error_msg}"}))
-    
+    if error_msg:
+        error_response = make_response(
+            jsonify({"msg": f"following label files are missing: \n{error_msg}"}))
+
     # has correct columns:
     for k, v in labelfiles.items():
         std_clms = ["file_name"]
-        if k == DetectionClass.Bronchus: 
-            std_clms = std_clms + ['xmin', 'ymin', 'xmax', 'ymax', 'a', 'b', 'c']
+        if k == DetectionClass.Bronchus:
+            std_clms = std_clms + ['xmin', 'ymin',
+                                   'xmax', 'ymax', 'a', 'b', 'c']
         elif k == DetectionClass.Vessel:
             std_clms = std_clms + ['xmin', 'ymin', 'xmax', 'ymax', 'd']
         else:
@@ -114,13 +124,13 @@ def _check_attachments(tmp_dir):
         if 0 != len(pd.DataFrame(columns=std_clms).columns.difference(pd.read_csv(v, nrows=0).columns)):
             this_err = f"{k} require columns of {std_clms}"
             error_msg = f"{error_msg}, {this_err}"
-    if error_msg: 
-        error_response = make_response(jsonify({"msg": f"following label files has wrong columns: \n{error_msg}"}))
-    
+    if error_msg:
+        error_response = make_response(
+            jsonify({"msg": f"following label files has wrong columns: \n{error_msg}"}))
+
     return error_response, datafile, labelfiles
 
 
-@bp.route("/train")
+@bp.route("/train", methods=['PUT'])
 def train():
     train_all()
-

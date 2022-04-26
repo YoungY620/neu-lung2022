@@ -1,5 +1,5 @@
 import os
-from random import random
+import random
 import shutil
 from typing import Any, Dict
 
@@ -75,8 +75,8 @@ def train_all(test_ratio=0.2, yolo_epoch=50, from_scratch=False, simclr_epoch=20
 
     analyzer = ModelGroup(device=device, train=True)
 
-    config_file = _prepare_yolo_data(test_ratio)
-    analyzer.train_yolo(config_file, test_ratio, yolo_epoch)
+    config_file = os.path.join(os.path.dirname(__file__), "../data/yolo.yml")
+    analyzer.train_yolo(config_file, test_ratio, yolo_epoch, from_scratch)
     analyzer.train_simclr(from_scratch, simclr_epoch)
 
     v_csv = os.path.join(data_dir, "vessel.csv")
@@ -95,38 +95,6 @@ def train_all(test_ratio=0.2, yolo_epoch=50, from_scratch=False, simclr_epoch=20
             im_x, y = get_rating_data(ind, odf)
         analyzer.train_regressor(ind, im_x, y)
 
-def _prepare_yolo_data(test_ratio):
-    data_dir = os.path.join(os.path.dirname(__file__), "../data")
-    yolo_label_dir = os.path.join(data_dir, "labels")
-    yolo_labels = os.listdir(yolo_label_dir)
-    random.shuffle(yolo_labels)
-    test_size = round(len(yolo_labels)*test_ratio)
-    yolo_train, yolo_test = yolo_labels[test_size:], yolo_labels[:test_size]
-    def converter(lb_file): return os.path.abspath(os.path.join(
-        data_dir, f"images/{lb_file.replace('.txt', '')}.jpg"))
-    yolo_train = [converter(lb_f) for lb_f in yolo_train]
-    yolo_test = [converter(lb_f) for lb_f in yolo_test]
-
-    cfg_path = os.path.join(data_dir, "yolo.yml")
-    _write_yolo_dataset_config(cfg_path, yolo_train, yolo_test)
-    return cfg_path
-
-def _write_yolo_dataset_config(cfg_file, train_data, test_data):
-    cls_names = DETECTED_CLASSES
-    data_path = os.path.join(os.path.dirname(__file__), "../data/images")
-    dataset_config = f'''# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: {data_path}  # dataset root dir
-train: {train_data}  # train images (relative to 'path') 128 images
-val: {train_data}  # val images (relative to 'path') 128 images
-test: {test_data} # test images (optional)
-
-# Classes
-nc: {len(cls_names)}  # number of classes
-names: {cls_names}  # class names'''
-
-    with open(cfg_file, 'w') as f:
-        f.write(dataset_config)
-
 
 class ModelGroup(object):
     '''全局单例类. 为了尽可能节省加载模型参数时间'''
@@ -142,7 +110,7 @@ class ModelGroup(object):
             indexes = ['a', 'b', 'c', 'd', 'e']
             cls._instance.regressors = {}
             model_dir = os.path.join(os.path.dirname(
-                os.path.abspath(__file__)), '../models')
+                os.path.abspath(__file__)), 'models')
             for index in indexes:
                 cls._instance.regressors[index] = joblib.load(
                     os.path.join(model_dir, f"vot_reg_{index}.pk"))
@@ -225,18 +193,22 @@ class ModelGroup(object):
         simclr.train(train_loader)
         self.encoder = model
 
-    def train_yolo(self, cfg_path, test_ratio, yolo_epoch):
-        
-        yolo.train(img=640, batch=16, epochs=yolo_epoch,
-                   data=cfg_path, weights='yolov5s.pt', exist_ok=True)
+    def train_yolo(self, cfg_path, test_ratio, yolo_epoch, from_scratch):
+        core_dir = os.path.dirname(os.path.abspath(__file__))
+        yolo_repo = os.path.join(core_dir, 'yolov5')
+        yolo_model = os.path.join(core_dir, 'models/detector_yolov5.pt')
+        if from_scratch:
+            yolo_model_path = os.path.join(
+                os.path.dirname(__file__), "yolov5.pt")
+        else:
+            yolo_model_path = os.path.join(
+                core_dir, 'models/detector_yolov5.pt')
+        yolo.run(imgsz=640, batch=16, epochs=yolo_epoch,
+                 data=cfg_path, weights=yolo_model_path, exist_ok=True)
         yolo_pt = os.path.join(os.path.dirname(
             __file__), "yolov5/runs/train/exp/weights/best.pt")
         shutil.copyfile(yolo_pt, os.path.join(
             os.path.dirname(__file__), "models/detector_yolov5.pt"))
-
-        core_dir = os.path.dirname(os.path.abspath(__file__))
-        yolo_repo = os.path.join(core_dir, 'yolov5')
-        yolo_model = os.path.join(core_dir, 'models/detector_yolov5.pt')
         self.detector = torch.hub.load(
             yolo_repo, 'custom', path=yolo_model, source='local').to(self.device)
 
