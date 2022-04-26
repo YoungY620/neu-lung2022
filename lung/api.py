@@ -134,3 +134,7 @@ def _check_attachments(tmp_dir):
 @bp.route("/train", methods=['PUT'])
 def train():
     train_all()
+
+@bp.cli.command("train-all")
+def train_cli():
+    train_all()

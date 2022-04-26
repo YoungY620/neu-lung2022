@@ -68,7 +68,7 @@ def analyze_one(img: Image, confidence=0.5) -> Dict[str, Any]:
     return res_dict
 
 
-def train_all(test_ratio=0.2, yolo_epoch=50, from_scratch=False, simclr_epoch=200):
+def train_all(test_ratio=0.2, yolo_epoch=1, from_scratch=False, simclr_epoch=1):
     device = torch.device(
         'cuda' if current_app.config['DEVICE'] == 'cuda' and torch.cuda.is_available() else 'cpu')
     data_dir = os.path.join(os.path.dirname(__file__), "../data")
@@ -203,7 +203,7 @@ class ModelGroup(object):
         else:
             yolo_model_path = os.path.join(
                 core_dir, 'models/detector_yolov5.pt')
-        yolo.run(imgsz=640, batch=16, epochs=yolo_epoch,
+        yolo.run(imgsz=640, batch=16, epochs=yolo_epoch, workers=1,
                  data=cfg_path, weights=yolo_model_path, exist_ok=True)
         yolo_pt = os.path.join(os.path.dirname(
             __file__), "yolov5/runs/train/exp/weights/best.pt")
