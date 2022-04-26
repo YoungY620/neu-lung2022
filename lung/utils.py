@@ -3,7 +3,6 @@ import re
 import uuid
 
 import cv2 as cv
-from sqlalchemy.types import NVARCHAR, Float, Integer
 
 
 def _draw_one_box(draw_img, bbox, label: str,  label_color, 
@@ -80,13 +79,3 @@ def auto_increase_filepath(path):
     return file_name
 
 
-def map_types(df):
-    dtypedict = {}
-    for i, j in zip(df.columns, df.dtypes):
-        if "object" in str(j):
-            dtypedict.update({i: NVARCHAR(length=255)})
-        if "float" in str(j):
-            dtypedict.update({i: Float(precision=2, asdecimal=True)})
-        if "int" in str(j):
-            dtypedict.update({i: Integer()})
-    return dtypedict

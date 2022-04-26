@@ -4,7 +4,7 @@ USE lung;
 DROP TABLE IF EXISTS bronchus_annotation;
 CREATE TABLE bronchus_annotation(
     id VARCHAR(32) PRIMARY KEY,
-    file_name VARCHAR(50), 
+    file_name VARCHAR(50) NOT NULL, 
     xmin FLOAT NOT NULL, 
     ymin FLOAT NOT NULL, 
     xmax FLOAT NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE bronchus_annotation(
 DROP TABLE IF EXISTS vessel_annotation;
 CREATE TABLE vessel_annotation(
     id VARCHAR(32) PRIMARY KEY,
-    file_name VARCHAR(50), 
+    file_name VARCHAR(50) NOT NULL, 
     xmin FLOAT NOT NULL, 
     ymin FLOAT NOT NULL, 
     xmax FLOAT NOT NULL,

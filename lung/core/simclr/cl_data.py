@@ -1,4 +1,5 @@
 import os
+from typing import Callable
 
 import torch
 from torchvision.transforms import transforms
@@ -31,11 +32,11 @@ class ContrastiveLearningViewGenerator(object):
 
 class ContrastiveLearningDataset(torch.utils.data.Dataset):
 
-  def __init__(self, data_root, n_views=4) -> None:
+  def __init__(self, data_root, n_views=4, img_filter=lambda _:True) -> None:
     transforms = get_simclr_pipeline_transform(80)
     self.transforms = ContrastiveLearningViewGenerator(transforms, n_views)
 
-    flist = get_filelist(data_root)
+    flist = get_filelist(data_root, img_filter)
     self.img_boxes = []
     h, w, _ = np.array(Image.open(flist[0])).shape
     for f in flist:

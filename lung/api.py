@@ -10,9 +10,10 @@ import pandas as pd
 from flask import Blueprint, jsonify, make_response, request
 from PIL import Image
 
-from lung.core.analysis import analyze_one
+from lung.core.analyzer import analyze_one, train_all
 from lung.utils import auto_increase_filepath, draw_boxes
 from lung import db
+from lung.core.data import store_data, DetectionClass
 
 bp = Blueprint('api', __name__)
 
@@ -63,12 +64,13 @@ def import_data():
     '''
     csvtmp_dir = os.path.join(os.path.dirname(__file__), f"data/tmp/__csv-{uuid.uuid4()}__")
     ziptmp_dir = os.path.join(os.path.dirname(__file__), f'data/tmp/__zip-{uuid.uuid4()}__')
+    os.makedirs(csvtmp_dir, exist_ok=True)
+    os.makedirs(ziptmp_dir, exist_ok=True)
     try:
         error_response, datafile, labelfiles = _check_attachments(csvtmp_dir)
         drop_before = (request.form.get("drop_before").lower() == "true")
         if error_response: return error_response
-        renamed = _extract_zip_data(datafile, drop_before, ziptmp_dir)
-        _save_csv_to_sql(labelfiles, renamed, drop_before)
+        store_data(datafile, labelfiles, drop_before, ziptmp_dir)
     except:
         return make_response(500)
     finally:
@@ -81,16 +83,13 @@ def import_data():
 def _check_attachments(tmp_dir):
     error_response = None
     datafile = request.files.get('data')
-    indexes = ["vessel", "bronchus", "overall"]
+    indexes = [DetectionClass.Vessel, DetectionClass.Bronchus, "overall"]
     labelfiles = {}
-    if not os.path.isdir(tmp_dir):
-        os.mkdir(tmp_dir)
     for ind in indexes:
         path = os.path.join(tmp_dir, f"{ind}-{uuid.uuid4()}.csv")
         request.files.get(ind).save(path)
         labelfiles[ind] = path
-
-
+        
     if not datafile: 
         error_response =  make_response(jsonify({"msg": "file 'data' is missing."}), 400)
     error_msg = None
@@ -105,9 +104,9 @@ def _check_attachments(tmp_dir):
     # has correct columns:
     for k, v in labelfiles.items():
         std_clms = ["file_name"]
-        if k == "bronchus": 
+        if k == DetectionClass.Bronchus: 
             std_clms = std_clms + ['xmin', 'ymin', 'xmax', 'ymax', 'a', 'b', 'c']
-        elif k == "vessel":
+        elif k == DetectionClass.Vessel:
             std_clms = std_clms + ['xmin', 'ymin', 'xmax', 'ymax', 'd']
         else:
             std_clms = std_clms + ['e']
@@ -121,44 +120,7 @@ def _check_attachments(tmp_dir):
     return error_response, datafile, labelfiles
 
 
-def _save_csv_to_sql(labelfiles: Dict, renamed, drop_before):
-    for k, v in labelfiles.items():
-        # print(k)
-        # print(renamed)
-        df = pd.read_csv(v)
-        df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
-        for before, after in renamed.items():
-            df = df.replace(to_replace={'file_name': before}, value=after)
-        df.index = df.index.map(lambda _: str(uuid.uuid4()).replace("-",""))
-        # print(df.head())
-        df.to_sql(name=f"{k}_annotation", con=db.engine, index=False, \
-            if_exists=("replace" if drop_before else "append"))
-
-
-def _extract_zip_data(datafile, drop_before, ziptmp_dir):
-    with ZipFile(datafile) as datazip:
-        for name in datazip.namelist():
-            datazip.extract(name, ziptmp_dir)
-    data_dir = os.path.join(os.path.dirname(__file__), "data/images")
-    if drop_before and os.path.exists(data_dir):
-        shutil.rmtree(data_dir)
-    if not os.path.exists(data_dir): 
-        os.mkdir(data_dir)
-    renamed = {}
-    files = next(os.walk(ziptmp_dir))
-    for filename in files[2]:
-        if os.path.isfile(os.path.join(ziptmp_dir, filename)) and filename.endswith(".jpg"):
-            unique_name = auto_increase_filepath(os.path.join(data_dir, filename))
-            if unique_name != filename:
-                renamed[filename] = unique_name
-            # print(filename, unique_name)
-            shutil.move(os.path.join(ziptmp_dir, filename), os.path.join(data_dir, unique_name))
-    
-    return renamed
-
-
-
 @bp.route("/train")
 def train():
-    pass
+    train_all()
 
