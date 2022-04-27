@@ -77,7 +77,7 @@ def train_all(test_ratio=0.2, yolo_epoch=0, from_scratch=False, simclr_epoch=0):
 
     config_file = os.path.join(os.path.dirname(__file__), "../data/yolo.yml")
     if yolo_epoch != 0: 
-        analyzer.train_yolo(config_file, test_ratio, yolo_epoch, from_scratch)
+        analyzer.train_yolo(config_file, yolo_epoch, from_scratch)
     if simclr_epoch != 0:
         analyzer.train_simclr(from_scratch, simclr_epoch)
 
@@ -95,7 +95,7 @@ def train_all(test_ratio=0.2, yolo_epoch=0, from_scratch=False, simclr_epoch=0):
             im_x, y = get_rating_data(ind, vdf)
         else:
             im_x, y = get_rating_data(ind, odf)
-        analyzer.train_regressor(ind, im_x, y)
+        analyzer.train_regressor(ind, im_x, y, test_ratio)
 
 
 class ModelGroup(object):
@@ -195,7 +195,7 @@ class ModelGroup(object):
         simclr.train(train_loader)
         self.encoder = model
 
-    def train_yolo(self, cfg_path, test_ratio, yolo_epoch, from_scratch):
+    def train_yolo(self, cfg_path, yolo_epoch, from_scratch):
         core_dir = os.path.dirname(os.path.abspath(__file__))
         yolo_repo = os.path.join(core_dir, 'yolov5')
         yolo_model = os.path.join(core_dir, 'models/detector_yolov5.pt')
@@ -215,7 +215,7 @@ class ModelGroup(object):
         self.detector = torch.hub.load(
             yolo_repo, 'custom', path=yolo_model, source='local').to(self.device)
 
-    def train_regressor(self, index, im_x, y):
+    def train_regressor(self, index, im_x, y, test_ratio):
         trans = get_simclr_encoding_transform()
 
         def ftr_converter(input): return get_flatten_rating_feature(
@@ -223,7 +223,7 @@ class ModelGroup(object):
             self.nucleus_hist, self.cytoplasm_hist, self.background_hist)
         x = np.array([ftr_converter(im) for im in im_x])
         X_train, X_test, y_train, y_test = train_test_split(
-            x, y, random_state=42, test_size=0.2)
+            x, y, random_state=42, test_size=test_ratio)
 
         svr_boost = AdaBoostRegressor(base_estimator=SVR(C=1.0, epsilon=0.2))
         tr_pip = Pipeline([('discretizer', KBinsDiscretizer(n_bins=5, encode="onehot", strategy='uniform')),
