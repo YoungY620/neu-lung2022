@@ -4,7 +4,7 @@ import os
 import shutil
 from PIL import Image
 import uuid
-from typing import Dict
+from typing import Any, Dict, List, Tuple
 from zipfile import ZipFile
 
 import pandas as pd
@@ -117,24 +117,23 @@ names: {str(cls_names)}  # class names'''
         f.write(dataset_config)
 
 
-def get_rating_data(index, df):
-    data_dir = os.path.join(os.path.dirname(__file__), "../data/image")
+def get_rating_data(index, df) -> Tuple[List, List]:
+    data_dir = os.path.join(os.path.dirname(__file__), "../data/images")
     df = df.copy()
     np_imgs, ratings = [], []
     assert index in ['a', 'b', 'c', 'd', 'e'] and index in df.columns
+    df = df.dropna(subset=[index])
     filename = None
     img = None
     for i, row in df.iterrows():
-        if img == None or row['file_name'] != filename:
+        if row[index] == None: continue
+        if row['file_name'] != filename:
             img = Image.open(os.path.join(
                 data_dir, row['file_name'])).convert("RGB")
-            img = np.array(img)
         ratings.append(row[index])
         if index == 'e':
-            np_imgs.append(np.array(img, copy=True))
+            np_imgs.append(img)
         else:
-            np_img_copy = np.copy(
-                img)[row['ymin']:row['ymax']+1, row['xmin']:row['xmax']+1]
-            np_imgs.append(np_img_copy)
-
+            np_imgs.append(img.crop((row['xmin'], row['ymin'], row['xmax'], row['ymax'])))
+ 
     return np_imgs, ratings

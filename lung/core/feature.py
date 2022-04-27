@@ -2,9 +2,15 @@ import cv2 as cv
 import numpy as np
 import pywt
 from skimage.feature import graycomatrix, graycoprops
+import torch
 
 
-def _abstract_features(tensor_image, model):
+def _abstract_features(tensor_image, model, device):
+    model.to(device)
+    if device == torch.device("cpu"):
+        tensor_image = tensor_image.cpu()
+    else:
+        tensor_image = tensor_image.cuda()
     return np.array(model(tensor_image).cpu().detach()).flatten()
 
 
@@ -58,14 +64,15 @@ def _get_area(img, hist, remove_unnecessary=False):
 
 def _color_ratio_feature(im, n_hist, c_hist, b_hist, rm_unnecessary=False):
     '''rm_unnecessary: 不考虑与边缘联通的空白区域.'''
-    n_area = _get_area(np.array(im.copy()), n_hist, rm_unnecessary)
-    c_area = _get_area(np.array(im.copy()), c_hist, rm_unnecessary)
+    n_area = _get_area(np.array(im.copy()), n_hist)
+    c_area = _get_area(np.array(im.copy()), c_hist)
     b_area = _get_area(np.array(im.copy()), b_hist, rm_unnecessary)
+    
     return np.array([n_area/c_area, b_area/c_area])
 
 
 def get_flatten_rating_feature(im, index, transforms, encoder_model, device, n_hist, c_hist, b_hist):
-    print(f"{index} started.")
+    # print(f"{index} started.")
     im = im.convert('RGB')
     grey_np_im = np.array(im.copy().convert('L'))
     tensor_im = transforms(im.copy()).unsqueeze(0).to(device)
@@ -75,6 +82,6 @@ def get_flatten_rating_feature(im, index, transforms, encoder_model, device, n_h
         ftr = np.append(ftr, _abstract_features(tensor_im, encoder_model, device)) # 小秘密: 由于数据量小, 其实加上抽象特征效果更差
     ftr = np.append(ftr, _comatrix_features(grey_np_im))
     ftr = np.append(ftr, _color_ratio_feature(im, n_hist, c_hist, b_hist, rm_unnecessary=(index=='e')))
-    print(f"{index} completed.")
+    # print(f"{index} completed.")
     return ftr
 

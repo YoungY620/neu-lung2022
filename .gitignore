@@ -145,3 +145,4 @@ lung/data/*
 bronchus.csv
 overall.csv
 vessel.csv
+lung/core/simclr/log/*

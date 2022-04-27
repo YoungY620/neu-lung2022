@@ -21,16 +21,13 @@ bp = Blueprint('api', __name__)
 @bp.route('/analysis', methods=['POST'])
 def analysis():
     upload_img = request.files.get('image')
-    confidence = request.form.get('confidence')
-    confidence = float(confidence) if confidence else 0
+    confidence = request.form.get('confidence', default=0, type=float)
     if upload_img == None:
         return make_response(jsonify({"msg": "a image file is needed."}), 400)
     # TODO 检查文件类型
 
     tmp_dir = os.path.join(os.path.dirname(__file__), "data/tmp")
 
-    # with tempfile.TemporaryFile(mode='w+b', suffix='.jpg') as fobj:
-    #     upload_img.save(fobj)
     im = Image.open(upload_img)
     analysis_dict = analyze_one(im, confidence)
     np_im = np.array(im)
@@ -114,8 +111,7 @@ def _check_attachments(tmp_dir):
     for k, v in labelfiles.items():
         std_clms = ["file_name"]
         if k == DetectionClass.Bronchus:
-            std_clms = std_clms + ['xmin', 'ymin',
-                                   'xmax', 'ymax', 'a', 'b', 'c']
+            std_clms = std_clms + ['xmin', 'ymin', 'xmax', 'ymax', 'a', 'b', 'c']
         elif k == DetectionClass.Vessel:
             std_clms = std_clms + ['xmin', 'ymin', 'xmax', 'ymax', 'd']
         else:
@@ -133,7 +129,12 @@ def _check_attachments(tmp_dir):
 
 @bp.route("/train", methods=['PUT'])
 def train():
-    train_all()
+    from_scratch = request.form.get("from_scratch", default=True, type=bool)
+    cl_epoch = request.form.get("cl_epoch", default=200, type=int)
+    detection_epoch = request.form.get("detection_epoch", default=50, type=int)
+    test_ratio = request.form.get("test_ratio", default=0.2, type=float)
+
+    train_all(test_ratio, detection_epoch, from_scratch, cl_epoch)
 
 @bp.cli.command("train-all")
 def train_cli():

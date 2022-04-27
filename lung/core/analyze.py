@@ -6,23 +6,23 @@ from typing import Any, Dict
 import joblib
 import numpy as np
 import pandas as pd
+import torch
+from flask import current_app
+from lung.core.data import DETECTED_CLASSES, get_rating_data
+from lung.core.feature import get_flatten_rating_feature
+from lung.core.simclr.cl_data import ContrastiveLearningDataset
+from lung.core.simclr.simclr import SimCLR
+from lung.core.simclr.simclr_resnet18 import ResNetSimCLR
+from lung.core.simclr.transforms import get_simclr_encoding_transform
+from lung.core.yolov5 import train as yolo
+from PIL import Image
 from sklearn.ensemble import AdaBoostRegressor, VotingRegressor
+from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeRegressor
-import torch
-from flask import current_app
-from lung.core.data import DETECTED_CLASSES, get_rating_data
-from lung.core.simclr.cl_data import ContrastiveLearningDataset
-from lung.core.feature import get_flatten_rating_feature
-from lung.core.simclr.simclr_resnet18 import ResNetSimCLR
-from lung.core.simclr.transforms import get_simclr_encoding_transform
-from lung.core.simclr.simclr import SimCLR
-from lung.core.yolov5 import train as yolo
-from PIL import Image
 from typing_extensions import Self
-from sklearn.model_selection import train_test_split
 
 
 def analyze_one(img: Image, confidence=0.5) -> Dict[str, Any]:
@@ -68,7 +68,7 @@ def analyze_one(img: Image, confidence=0.5) -> Dict[str, Any]:
     return res_dict
 
 
-def train_all(test_ratio=0.2, yolo_epoch=1, from_scratch=False, simclr_epoch=1):
+def train_all(test_ratio=0.2, yolo_epoch=0, from_scratch=False, simclr_epoch=0):
     device = torch.device(
         'cuda' if current_app.config['DEVICE'] == 'cuda' and torch.cuda.is_available() else 'cpu')
     data_dir = os.path.join(os.path.dirname(__file__), "../data")
@@ -76,8 +76,10 @@ def train_all(test_ratio=0.2, yolo_epoch=1, from_scratch=False, simclr_epoch=1):
     analyzer = ModelGroup(device=device, train=True)
 
     config_file = os.path.join(os.path.dirname(__file__), "../data/yolo.yml")
-    analyzer.train_yolo(config_file, test_ratio, yolo_epoch, from_scratch)
-    analyzer.train_simclr(from_scratch, simclr_epoch)
+    if yolo_epoch != 0: 
+        analyzer.train_yolo(config_file, test_ratio, yolo_epoch, from_scratch)
+    if simclr_epoch != 0:
+        analyzer.train_simclr(from_scratch, simclr_epoch)
 
     v_csv = os.path.join(data_dir, "vessel.csv")
     b_csv = os.path.join(data_dir, "bronchus.csv")
@@ -166,7 +168,7 @@ class ModelGroup(object):
             cl_dataset, batch_size=10, shuffle=True,
             num_workers=2, pin_memory=True, drop_last=True)
         device = torch.device(
-            'cuda' if current_app.config['device'] == 'cuda' and torch.cuda.is_available() else 'cpu')
+            'cuda' if current_app.config['DEVICE'] == 'cuda' and torch.cuda.is_available() else 'cpu')
         model = ResNetSimCLR(out_dim=64)
         if not from_scratch:
             model.load_state_dict(self.encoder.state_dict())
@@ -233,7 +235,7 @@ class ModelGroup(object):
         vot_reg.fit(X_train, y_train)         # 全部特征
         test_s, train_s = vot_reg.score(
             X_test, y_test), vot_reg.score(X_train, y_train)
-        print("regressor training completed.")
+        print(f"training of '{index}' just completed.")
         print(f"testing score: {test_s}, training score: {train_s}")
 
         self.regressors[index] = vot_reg
