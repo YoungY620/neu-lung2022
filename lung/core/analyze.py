@@ -205,7 +205,7 @@ class ModelGroup(object):
         else:
             yolo_model_path = os.path.join(
                 core_dir, 'models/detector_yolov5.pt')
-        yolo.run(imgsz=640, batch=16, epochs=yolo_epoch, workers=1,
+        yolo.run(imgsz=640, batch=16, epochs=yolo_epoch, workers=current_app.config['YOLO_WORKERS'],
                  data=cfg_path, weights=yolo_model_path, exist_ok=True, \
                      device=current_app.config['DEVICE'])
         yolo_pt = os.path.join(os.path.dirname(
