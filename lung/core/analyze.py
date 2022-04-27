@@ -206,7 +206,8 @@ class ModelGroup(object):
             yolo_model_path = os.path.join(
                 core_dir, 'models/detector_yolov5.pt')
         yolo.run(imgsz=640, batch=16, epochs=yolo_epoch, workers=1,
-                 data=cfg_path, weights=yolo_model_path, exist_ok=True)
+                 data=cfg_path, weights=yolo_model_path, exist_ok=True, \
+                     device=current_app.config['DEVICE'])
         yolo_pt = os.path.join(os.path.dirname(
             __file__), "yolov5/runs/train/exp/weights/best.pt")
         shutil.copyfile(yolo_pt, os.path.join(
