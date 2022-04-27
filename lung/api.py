@@ -4,6 +4,7 @@ import uuid
 from typing import Dict
 import uuid
 from zipfile import ZipFile
+import click
 
 import numpy as np
 import pandas as pd
@@ -137,5 +138,10 @@ def train():
     train_all(test_ratio, detection_epoch, from_scratch, cl_epoch)
 
 @bp.cli.command("train-all")
-def train_cli():
-    train_all()
+@click.option("--cl")
+@click.option("--de")
+def train_cli(cl, de):
+    cl_epoch = int(cl)
+    detection_epoch = int(de)
+
+    train_all(simclr_epoch=cl_epoch, yolo_epoch=detection_epoch)
