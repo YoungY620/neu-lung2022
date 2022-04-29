@@ -4,6 +4,7 @@ import yact
 import os
 from flask import Flask, Config
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 
 
 db = SQLAlchemy()
@@ -50,5 +51,7 @@ def create_app(test_config=None):
 
     from lung import api
     app.register_blueprint(api.bp)
+
+    CORS(app, resources=r'/*')
 
     return app
