@@ -1,15 +1,12 @@
-from collections import Counter
-from threading import Thread
 import os
 import shutil
 from PIL import Image
 import uuid
-from typing import Any, Dict, List, Tuple
+from typing import Dict, List, Tuple
 from zipfile import ZipFile
 
 import pandas as pd
-from lung import db
-from lung.utils import auto_increase_filepath
+from lung.utils import auto_increase_filename
 import numpy as np
 
 
@@ -86,7 +83,7 @@ def _extract_zip_data(datafile, drop_before, ziptmp_dir):
     files = next(os.walk(ziptmp_dir))
     for filename in files[2]:
         if os.path.isfile(os.path.join(ziptmp_dir, filename)) and filename.endswith(".jpg"):
-            unique_name = auto_increase_filepath(
+            unique_name = auto_increase_filename(
                 os.path.join(data_dir, filename))
             if unique_name != filename:
                 renamed[filename] = unique_name

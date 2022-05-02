@@ -1,5 +1,4 @@
 import os
-import random
 import shutil
 from typing import Any, Dict
 
@@ -8,7 +7,7 @@ import numpy as np
 import pandas as pd
 import torch
 from flask import current_app
-from lung.core.data import DETECTED_CLASSES, get_rating_data
+from lung.core.data import get_rating_data
 from lung.core.feature import get_flatten_rating_feature
 from lung.core.simclr.cl_data import ContrastiveLearningDataset
 from lung.core.simclr.simclr import SimCLR
@@ -62,7 +61,7 @@ def analyze_one(img: Image, confidence=0.5) -> Dict[str, Any]:
             rate = analyzer.analyze(index=ind, img=box_img)
             res_dict[ind].append(rate)
 
-    e_rate = analyzer.analyze(index=ind, img=img)
+    e_rate = analyzer.analyze(index='e', img=img)
     res_dict['e'] = e_rate
 
     return res_dict

@@ -30,6 +30,10 @@ mv ./models ./lung/core/models
 ./run.ps1
 ```
 
+## 前端应用
+
+[neu-lung2022-font](https://github.com/YoungY620/neu-lung2022-front)
+
 ## 参考
 
 基于以下项目二次开发：

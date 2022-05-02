@@ -1,11 +1,10 @@
-from typing import Dict
-from flask import Flask
-import yact
 import os
-from flask import Flask, Config
-from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
+from typing import Dict
 
+import yact
+from flask import Config, Flask
+from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 

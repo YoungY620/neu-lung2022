@@ -33,6 +33,15 @@ def _draw_one_box(draw_img, bbox, label: str,  label_color,
         cv.waitKey(0)
 
 
+def cache_origin_img(analysis_dict, np_img, save_dir):
+    unique_id = f"{uuid.uuid4()}"
+    if save_dir == None or not os.path.exists(save_dir):
+        raise ValueError(f'cannot find image saving path: {save_dir}')
+    origin_name = unique_id+"-origin.jpg"
+    cv.imwrite(os.path.join(save_dir, origin_name), np_img)
+    analysis_dict['origin_img'] = f"data/tmp/{origin_name}"
+
+
 def draw_boxes(analysis_dict, np_img, save=True, show=False, save_dir=None):
     unique_id = f"{uuid.uuid4()}"
     if save:
@@ -65,7 +74,7 @@ def draw_boxes(analysis_dict, np_img, save=True, show=False, save_dir=None):
         analysis_dict['together_img'] = f"data/tmp/{together_name}"
     
 
-def auto_increase_filepath(path):
+def auto_increase_filename(path):
     directory, file_name = os.path.split(path)
     while os.path.isfile(path):
         pattern = '(\d+)\)\.'
@@ -78,4 +87,15 @@ def auto_increase_filepath(path):
         path = os.path.join(directory + os.sep + file_name)
     return file_name
 
-
+def auto_increase_filepathname(path):
+    directory, file_name = os.path.split(path)
+    while os.path.isfile(path):
+        pattern = '(\d+)\)\.'
+        if re.search(pattern, file_name) is None:
+            file_name = file_name.replace('.', '(0).')
+        else:
+            current_number = int(re.findall(pattern, file_name)[-1])
+            new_number = current_number + 1
+            file_name = file_name.replace(f'({current_number}).', f'({new_number}).')
+        path = os.path.join(directory + os.sep + file_name)
+    return path, directory, file_name

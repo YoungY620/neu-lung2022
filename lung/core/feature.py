@@ -67,7 +67,7 @@ def _color_ratio_feature(im, n_hist, c_hist, b_hist, rm_unnecessary=False):
     n_area = _get_area(np.array(im.copy()), n_hist)
     c_area = _get_area(np.array(im.copy()), c_hist)
     b_area = _get_area(np.array(im.copy()), b_hist, rm_unnecessary)
-    
+    if c_area == 0: c_area = 1
     return np.array([n_area/c_area, b_area/c_area])
 
 
