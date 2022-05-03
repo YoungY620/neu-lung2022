@@ -15,12 +15,18 @@ virtualenv venv
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-下载模型
+下载模型, 并解压到 `./lung/core/models`
 
-```shell
-wget https://github.com/YoungY620/neu-lung2022/releases/download/<release-tag>/models.zip
-unzip ./models.zip
-mv ./models ./lung/core/models
+```powershell
+Invoke-WebRequest https://github.com/YoungY620/neu-lung2022/releases/download/v0.4/models.zip -outfile models.zip
+Expand-Archive -path models.zip -DestinationPath ./lung/core/models
+```
+
+下载默认数据, 解压到 `./lung/data`
+
+```powershell
+Invoke-WebRequest https://github.com/YoungY620/neu-lung2022/releases/download/v0.4/data.zip -outfile data.zip
+Expand-Archive -path data.zip -DestinationPath ./lung/data
 ```
 
 运行服务：
