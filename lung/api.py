@@ -143,6 +143,7 @@ def train():
     test_ratio = request.form.get("test_ratio", default=0.2, type=float)
     print(test_ratio, detection_epoch, from_scratch, cl_epoch)
     train_all(test_ratio, detection_epoch, from_scratch, cl_epoch)
+    return make_response(jsonify(msg="ok"), 200)
 
 
 @bp.cli.command("train-all")
