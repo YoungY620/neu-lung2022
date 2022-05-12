@@ -39,10 +39,11 @@ def _comatrix_features(grey_np_img):
 
 
 def _remove_unnecessary_region(mask):
-    mask = np.array(mask)
-    edge_unique = np.unique(mask[[0, -1], :][:, [0, -1]])[1:]
+    mask = np.array(mask, copy=True)
+    n, labels = cv.connectedComponents(mask[:,:,0])
+    edge_unique = np.unique(labels[[0, -1], :][:, [0, -1]])[1:]
     for i in edge_unique:
-        mask[np.where(mask == i)] = 0
+        mask[np.where(labels == i)] = 0
     return mask
 
 
@@ -63,7 +64,7 @@ def _get_area(img, hist, remove_unnecessary=False):
 
 
 def _color_ratio_feature(im, n_hist, c_hist, b_hist, rm_unnecessary=False):
-    '''rm_unnecessary: 不考虑与边缘联通的空白区域.'''
+    '''rm_unnecessary: Blank areas connected to edges are not considered.'''
     n_area = _get_area(np.array(im.copy()), n_hist)
     c_area = _get_area(np.array(im.copy()), c_hist)
     b_area = _get_area(np.array(im.copy()), b_hist, rm_unnecessary)
