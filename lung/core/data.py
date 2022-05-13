@@ -117,7 +117,7 @@ names: {str(cls_names)}  # class names'''
 def get_rating_data(index, df) -> Tuple[List, List]:
     data_dir = os.path.join(os.path.dirname(__file__), "../data/images")
     df = df.copy()
-    np_imgs, ratings = [], []
+    pil_images, ratings = [], []
     assert index in ['a', 'b', 'c', 'd', 'e'] and index in df.columns
     df = df.dropna(subset=[index])
     filename = None
@@ -129,8 +129,8 @@ def get_rating_data(index, df) -> Tuple[List, List]:
                 data_dir, row['file_name'])).convert("RGB")
         ratings.append(row[index])
         if index == 'e':
-            np_imgs.append(img)
+            pil_images.append(img)
         else:
-            np_imgs.append(img.crop((row['xmin'], row['ymin'], row['xmax'], row['ymax'])))
+            pil_images.append(img.crop((row['xmin'], row['ymin'], row['xmax'], row['ymax'])))
  
-    return np_imgs, ratings
+    return pil_images, ratings
