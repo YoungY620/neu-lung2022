@@ -79,8 +79,8 @@ def get_flatten_rating_feature(im, index, transforms, encoder_model, device, n_h
     tensor_im = transforms(im.copy()).unsqueeze(0).to(device)
     ftr = []
 
-    if index == 'e': 
-        ftr = np.append(ftr, _abstract_features(tensor_im, encoder_model, device)) # 小秘密: 由于数据量小, 其实加上抽象特征效果更差
+    ftr = np.append(ftr, _abstract_features(tensor_im, encoder_model, device)) 
+    # 小秘密: 由于数据量小, 其实加上抽象特征效果更差
     ftr = np.append(ftr, _comatrix_features(grey_np_im))
     ftr = np.append(ftr, _color_ratio_feature(im, n_hist, c_hist, b_hist, rm_unnecessary=(index=='e')))
     # print(f"{index} completed.")

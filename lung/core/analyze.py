@@ -21,6 +21,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeRegressor
+from sklearn.feature_selection import SelectKBest, f_regression
+from sklearn.pipeline import make_pipeline
 from typing_extensions import Self
 
 
@@ -184,7 +186,7 @@ class ModelGroup(object):
             'epochs': simclr_epoch,
             'arch': 'resnet18',
             'enable_cuda': current_app.config['DEVICE'] == 'cuda',
-            'n_views': 4,
+            'n_views': 2,
             'resume': False,
             'resume_model_path': './checkpoint_0200.pth.tar',
             'log_dir': './log'
@@ -231,7 +233,7 @@ class ModelGroup(object):
         estimators = [
             ('svr', svr_boost), ('tree', tree_boost)
         ]
-        vot_reg = VotingRegressor(estimators=estimators)
+        vot_reg = make_pipeline(SelectKBest(f_regression, k=90), VotingRegressor(estimators=estimators))
         vot_reg.fit(X_train, y_train)         # 全部特征
         test_s, train_s = vot_reg.score(
             X_test, y_test), vot_reg.score(X_train, y_train)
