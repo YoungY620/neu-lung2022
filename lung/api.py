@@ -16,7 +16,7 @@ from PIL import Image
 
 from lung.core.analyze import analyze_one, train_all
 from lung.core.data import DETECTED_CLASSES, DetectionClass, store_data
-from lung.utils import _draw_one_box, auto_increase_filename, auto_increase_filepathname, cache_origin_img
+from lung.utils import _draw_one_box, auto_increase_filepathname, cache_origin_img
 
 bp = Blueprint('api', __name__)
 
@@ -71,7 +71,7 @@ def show_image_with_label(file):
                           label_color=bx_color, save=False, show=False)
 
         _, encoded_img = cv2.imencode(
-            '.jpg', origin_img, [int(cv2.IMWRITE_JPEG_QUALITY), 95])
+            '.jpg', origin_img[:,:,::-1], [int(cv2.IMWRITE_JPEG_QUALITY), 95])
         img_io = BytesIO(encoded_img)
         img_io.seek(0)
         return send_file(img_io, mimetype='image/jpg')
