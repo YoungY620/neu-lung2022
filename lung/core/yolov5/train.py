@@ -660,6 +660,7 @@ def run(**kwargs):
     opt = parse_opt(True)
     for k, v in kwargs.items():
         setattr(opt, k, v)
+    if opt.epochs == 0: return opt
     main(opt)
     return opt
 
