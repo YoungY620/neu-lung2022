@@ -1,9 +1,12 @@
 import cv2 as cv
 import numpy as np
 import pywt
-from skimage.feature import graycomatrix, graycoprops
 import torch
-
+try:
+    from skimage.feature import graycomatrix, graycoprops
+except ImportError:
+    from skimage.feature import greycomatrix as graycomatrix
+    from skimage.feature import greycoprops as graycoprops
 
 def _abstract_features(tensor_image, model, device):
     model.to(device)
