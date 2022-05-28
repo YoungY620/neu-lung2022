@@ -137,17 +137,9 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-test.py
 lung/core/models/*
 lung/data/*
 !lung/data/tmp/example.jpg
 .vscode
-bronchus.csv
-overall.csv
-vessel.csv
 lung/core/simclr/log/*
 labeled.zip
-validateSchema.errors.json
-test.json
-generatedSchema.json
-lung/test-draw-url.txt
