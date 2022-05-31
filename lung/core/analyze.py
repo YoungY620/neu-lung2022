@@ -24,7 +24,9 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.feature_selection import SelectKBest, f_regression
 from sklearn.pipeline import make_pipeline
 from typing_extensions import Self
+import threading
 
+lock = threading.Lock()
 
 def analyze_one(img: Image, confidence=0.5) -> Dict[str, Any]:
     device = torch.device(
@@ -106,6 +108,7 @@ class ModelGroup(object):
     def __new__(cls, device=None, train=False, *args, **kwargs) -> Self:
         assert device != None
 
+        lock.acquire()
         if cls._instance is None:
             cls._instance = super(ModelGroup, cls).__new__(cls)
 
@@ -139,6 +142,7 @@ class ModelGroup(object):
             yolo_model = os.path.join(core_dir, 'models/detector_yolov5.pt')
             cls._instance.detector = torch.hub.load(
                 yolo_repo, 'custom', path=yolo_model, source='local').to(device)
+        lock.release()
 
         cls._instance.to(device)
 
