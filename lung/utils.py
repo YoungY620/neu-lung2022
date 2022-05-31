@@ -38,7 +38,7 @@ def cache_origin_img(analysis_dict, np_img, save_dir):
     if save_dir == None or not os.path.exists(save_dir):
         raise ValueError(f'cannot find image saving path: {save_dir}')
     origin_name = unique_id+"-origin.jpg"
-    cv.imwrite(os.path.join(save_dir, origin_name), np_img)
+    cv.imwrite(os.path.join(save_dir, origin_name), np_img[:,:,::-1])
     analysis_dict['origin_img'] = f"data/tmp/{origin_name}"
 
 

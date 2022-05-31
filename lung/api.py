@@ -71,7 +71,7 @@ def show_image_with_label(file):
                           label_color=bx_color, save=False, show=False)
 
         _, encoded_img = cv2.imencode(
-            '.jpg', origin_img[:,:,::-1], [int(cv2.IMWRITE_JPEG_QUALITY), 95])
+            '.jpg', origin_img, [int(cv2.IMWRITE_JPEG_QUALITY), 95])
         img_io = BytesIO(encoded_img)
         img_io.seek(0)
         return send_file(img_io, mimetype='image/jpg')
