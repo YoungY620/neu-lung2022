@@ -6,7 +6,8 @@
 
 ## 尝试运行
 
-```shell
+```powershell
+# in powershell
 git clone https://github.com/YoungY620/neu-lung2022
 cd neu-lung2022
 pip install virtualenv
@@ -18,6 +19,7 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 下载模型, 并解压到 `./lung/core/models`
 
 ```powershell
+# in powershell
 Invoke-WebRequest https://github.com/YoungY620/neu-lung2022/releases/download/v0.4/models.zip -outfile models.zip
 Expand-Archive -path models.zip -DestinationPath ./lung/core/models
 ```
@@ -25,6 +27,7 @@ Expand-Archive -path models.zip -DestinationPath ./lung/core/models
 下载默认数据, 解压到 `./lung/data`
 
 ```powershell
+# in powershell
 Invoke-WebRequest https://github.com/YoungY620/neu-lung2022/releases/download/v0.4/data.zip -outfile data.zip
 Expand-Archive -path data.zip -DestinationPath ./lung/data
 ```
