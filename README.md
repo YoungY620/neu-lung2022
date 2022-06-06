@@ -10,49 +10,47 @@
 
 ## 尝试运行
 
-```powershell
-# in powershell
-git clone https://github.com/YoungY620/neu-lung2022
-cd neu-lung2022
-pip install virtualenv
-virtualenv venv -p python3.8 
-./venv/Scripts/Activate.ps1
-pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-```
+1. 下载源码并安装依赖
 
-下载模型, 并解压到 `./lung/core/models`
+   ```powershell
+   # in powershell
+   git clone https://github.com/YoungY620/neu-lung2022
+   cd neu-lung2022
+   pip install virtualenv
+   virtualenv venv -p python3.8    # 重要: 指定Python版本为3.8
+   ./venv/Scripts/Activate.ps1
+   pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+   ```
 
-```powershell
-# in powershell
-Invoke-WebRequest https://github.com/YoungY620/neu-lung2022/releases/download/v0.4/models.zip -outfile models.zip
-Expand-Archive -path models.zip -DestinationPath ./lung/core/models
-```
+2. 使用 `annotation_db_setup.sql` 初始化数据表
 
-下载默认数据, 解压到 `./lung/data`
+3. 下载模型, 并解压到 `./lung/core/models`
 
-```powershell
-# in powershell
-Invoke-WebRequest https://github.com/YoungY620/neu-lung2022/releases/download/v0.4/data.zip -outfile data.zip
-Expand-Archive -path data.zip -DestinationPath ./lung/data
-```
+   ```powershell
+   # in powershell
+   Invoke-WebRequest https://github.com/YoungY620/neu-lung2022/releases/download/v0.4/models.zip -outfile models.zip
+   Expand-Archive -path models.zip -DestinationPath ./lung/core/models
+   ```
 
-运行服务：
+4. 运行服务
 
-```powershell
-# in powershell
-./run.ps1
-```
+   ```powershell
+   # in powershell
+   ./run.ps1
+   ```
 
-下载数据 `data.zip`:
+   之后, 按照[说明](https://github.com/YoungY620/neu-lung2022-front/blob/master/README.md)运行前端
 
-```powershell
-# in powershell
-Invoke-WebRequest https://github.com/YoungY620/neu-lung2022/releases/download/v0.4/data.zip -outfile data.zip
-```
+5. 下载数据 `data.zip`:
 
-在前端 "批量上传数据" 处选择上传该 `data.zip` 文件
+   ```powershell
+   # in powershell
+   Invoke-WebRequest https://github.com/YoungY620/neu-lung2022/releases/download/v0.4/data.zip -outfile data.zip
+   ```
 
-![](images/20220606174700.png)  
+   在前端 "批量上传数据" 处选择上传该 `data.zip` 文件作为初始数据
+
+   ![](images/20220606174700.png)  
 
 ## 参考
 
