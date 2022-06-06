@@ -139,7 +139,9 @@ cython_debug/
 
 lung/core/models/*
 lung/data/*
+lung/data-lite/*
 !lung/data/tmp/example.jpg
 .vscode
 lung/core/simclr/log/*
 labeled.zip
+data.zip

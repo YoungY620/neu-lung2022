@@ -16,10 +16,11 @@ from PIL import Image
 
 from lung.core.analyze import analyze_one, train_all
 from lung.core.data import DETECTED_CLASSES, DetectionClass, store_data
+from lung.models import BronchusAnnotation, OverallAnnotation, VesselAnnotation
 from lung.utils import _draw_one_box, auto_increase_filepathname, cache_origin_img
+from lung import db
 
 bp = Blueprint('api', __name__)
-
 
 @bp.route('/analysis', methods=['POST'])
 def analysis():
@@ -97,6 +98,7 @@ def import_data():
         error_response, datafile, labelfiles = _check_attachments(ziptmp_dir)
         drop_before = request.form.get(
             "drop_before", default=False, type=lambda xxx: xxx == "true")
+        print("++++++++++++++++++++++", drop_before)
         if error_response:
             return error_response
         store_data(datafile, labelfiles, drop_before, ziptmp_dir)
@@ -146,24 +148,14 @@ def train():
     return make_response(jsonify(msg="ok"), 200)
 
 
-@bp.cli.command("train-all")
-@click.option("--cl")
-@click.option("--de")
-def train_cli(cl, de):
-    cl_epoch = int(cl)
-    detection_epoch = int(de)
-
-    train_all(simclr_epoch=cl_epoch, yolo_epoch=detection_epoch)
-
-
 @bp.route("/fetch", methods=['GET'])
 def get_all_data():
-    data_dir = os.path.join(os.path.dirname(__file__), "./data")
     files = ["bronchus", "vessel", "overall"]
     res_data = []
+    conn = db.engine
+    print("++++++++++++++++++",conn)
     for fname in files:
-        file_path = os.path.join(data_dir, fname+".csv")
-        ds = pd.read_csv(file_path)
+        ds = pd.read_sql_table(fname + "_annotation", conn, index_col='id')
         detection_types = [fname] * len(ds)
         ds.insert(loc=0, column='type', value=detection_types)
         ds = ds.to_dict('records')
@@ -258,13 +250,11 @@ def push_images():
         shutil.copyfile(cache_path, unique_path)
         imItem['originName'] = unique_file
     # e:
-    df = pd.DataFrame(columns=["file_name", "e"])
     for imItem in image_data:
         if 'e' not in imItem.keys():
             continue
-        df = pd.concat([df, pd.DataFrame([[imItem['originName'], imItem['e']]],
-                                        index=[str(uuid.uuid4()).replace("-", "")], columns=["file_name", "e"])])
-    df.to_csv(os.path.join(image_dir, "../overall.csv"), mode='a', header=False)
+        item = OverallAnnotation(file_name=imItem['originName'], e=imItem['e'])
+        db.session.add(item)
     # yolo detection
     for imItem in image_data:
         yolo_lb_file = os.path.join(
@@ -279,25 +269,31 @@ def push_images():
                         {(de['box'][2]-de['box'][0])/w} \
                         {(de['box'][3]-de['box'][1])/h}\n")
     # a b c d ratings
-    vessel_path = os.path.join(os.path.dirname(__file__), "data/vessel.csv")
-    bronchus_path = os.path.join(
-        os.path.dirname(__file__), "data/bronchus.csv")
     for im in image_data:
         for de in im['detections']:
-            line = [str(uuid.uuid4()).replace("-", ""), im['originName']]
+            # file_name = str(uuid.uuid4()).replace("-", ""), im['originName']
             line = line + [str(x) for x in de['box']]
             if de['type'] == "vessel":
-                line.append(str(de['d']) if 'd' in de.keys()
-                            and de['d'] else "")
+                item = VesselAnnotation(file_name=im['originName'],
+                    xmin=de['box'][0], ymin=de['box'][1],
+                    xmax=de['box'][2], ymax=de['box'][3],
+                    d=float(de['d']) if 'd' in de.keys() and de['d'] else None)
             elif de['type'] == 'bronchus':
-                line.append(str(de['a']) if 'a' in de.keys()
-                            and de['a'] else "")
-                line.append(str(de['b']) if 'b' in de.keys()
-                            and de['b'] else "")
-                line.append(str(de['c']) if 'c' in de.keys()
-                            and de['c'] else "")
+                item = BronchusAnnotation(file_name=im['originName'],
+                    xmin=de['box'][0], ymin=de['box'][1],
+                    xmax=de['box'][2], ymax=de['box'][3],
+                    a=float(de['a']) if 'a' in de.keys() and de['a'] else None,
+                    b=float(de['b']) if 'b' in de.keys() and de['b'] else None,
+                    c=float(de['c']) if 'c' in de.keys() and de['c'] else None)
             else:
                 raise ValueError(f"invalid detection type: {de['type']}")
-            with open(vessel_path if de['type'] == 'vessel' else bronchus_path, mode='a') as fobj:
-                fobj.write(",".join(line)+'\n')
+            db.session.add(item)
+    vessel_path = os.path.join(os.path.dirname(__file__), "data/vessel.csv")
+    bronchus_path = os.path.join(os.path.dirname(__file__), "data/bronchus.csv")
+    overall_path = os.path.join(os.path.dirname(__file__), "data/overall.csv")
+    conn = db.engine
+    pd.read_sql("overall_annotation", conn, 'id').to_csv(overall_path)
+    pd.read_sql("bronchus_annotation", conn, 'id').to_csv(bronchus_path)
+    pd.read_sql("vessel_annotation", conn, 'id').to_csv(vessel_path)
+    
     return make_response(jsonify(msg="ok"), 200)

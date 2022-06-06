@@ -7,6 +7,7 @@ from zipfile import ZipFile
 
 import pandas as pd
 from lung.utils import auto_increase_filename
+from lung import db
 import numpy as np
 
 
@@ -52,6 +53,7 @@ def _arrange_yolo_dataset(drop_before, dfs):
 
 def _save_csv(labelfiles: Dict, renamed, drop_before):
     label_dfs = {}
+    conn = db.engine
     for k, v in labelfiles.items():
         # print(k)
         # print(renamed)
@@ -60,12 +62,12 @@ def _save_csv(labelfiles: Dict, renamed, drop_before):
         for before, after in renamed.items():
             df = df.replace(to_replace={'file_name': before}, value=after)
         df.index = df.index.map(lambda _: str(uuid.uuid4()).replace("-", ""))
-        # print(df.head())
-        # df.to_sql(name=f"{k}_annotation", con=db.engine, index=False, \
-        #     if_exists=("replace" if drop_before else "append"))
 
         csv_path = os.path.join(os.path.dirname(__file__), f"../data/{k}.csv")
-        df.to_csv(csv_path, mode=("w" if drop_before else "a"))
+        df.to_sql(k+"_annotation", conn, index_label='id', \
+            if_exists="replace" if drop_before else "append")
+        pd.read_sql(k+"_annotation", conn, 'id').to_csv(csv_path)
+
         label_dfs[k] = df
     return label_dfs
 

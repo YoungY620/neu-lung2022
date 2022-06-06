@@ -1,0 +1,1 @@
+(flask-sqlacodegen mysql://root:123456@localhost:3306/lung --flask) -replace 'db = SQLAlchemy\(\)','from lung import db' -replace 'from flask_sqlalchemy import SQLAlchemy','import uuid' -replace 'primary_key=True','primary_key=True, default=lambda: uuid.uuid4().hex' | out-file lung/models.py -encoding utf8

@@ -48,8 +48,9 @@ def create_app(test_config=None):
 
     db.init_app(app)
 
-    from lung import api
+    from lung import api, cli
     app.register_blueprint(api.bp)
+    app.register_blueprint(cli.bp)
 
     CORS(app, resources=r'/*')
 

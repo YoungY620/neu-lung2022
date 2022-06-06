@@ -4,6 +4,10 @@
 
 毕业设计：小鼠肺部图片肺炎诊断
 
+## 前端应用
+
+[neu-lung2022-font](https://github.com/YoungY620/neu-lung2022-front)
+
 ## 尝试运行
 
 ```powershell
@@ -11,7 +15,7 @@
 git clone https://github.com/YoungY620/neu-lung2022
 cd neu-lung2022
 pip install virtualenv
-virtualenv venv
+virtualenv venv -p python3.8 
 ./venv/Scripts/Activate.ps1
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
@@ -39,9 +43,16 @@ Expand-Archive -path data.zip -DestinationPath ./lung/data
 ./run.ps1
 ```
 
-## 前端应用
+下载数据 `data.zip`:
 
-[neu-lung2022-font](https://github.com/YoungY620/neu-lung2022-front)
+```powershell
+# in powershell
+Invoke-WebRequest https://github.com/YoungY620/neu-lung2022/releases/download/v0.4/data.zip -outfile data.zip
+```
+
+在前端 "批量上传数据" 处选择上传该 `data.zip` 文件
+
+![](images/20220606174700.png)  
 
 ## 参考
 

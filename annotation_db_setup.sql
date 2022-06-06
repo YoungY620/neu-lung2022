@@ -26,7 +26,7 @@ CREATE TABLE vessel_annotation(
 DROP TABLE IF EXISTS overall_annotation;
 CREATE TABLE overall_annotation(
     id VARCHAR(32) PRIMARY KEY,
-    file_name VARCHAR(50), 
+    file_name VARCHAR(50) NOT NULL, 
     e FLOAT
 )
 

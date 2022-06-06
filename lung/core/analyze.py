@@ -14,6 +14,7 @@ from lung.core.simclr.simclr import SimCLR
 from lung.core.simclr.simclr_resnet18 import ResNetSimCLR
 from lung.core.simclr.transforms import get_simclr_encoding_transform
 from lung.core.yolov5 import train as yolo
+from lung import db
 from PIL import Image
 from sklearn.ensemble import AdaBoostRegressor, VotingRegressor
 from sklearn.model_selection import train_test_split
@@ -74,7 +75,6 @@ def analyze_one(img: Image, confidence=0.5) -> Dict[str, Any]:
 def train_all(test_ratio=0.2, yolo_epoch=0, from_scratch=False, simclr_epoch=0):
     device = torch.device(
         'cuda' if current_app.config['DEVICE'] == 'cuda' and torch.cuda.is_available() else 'cpu')
-    data_dir = os.path.join(os.path.dirname(__file__), "../data")
 
     analyzer = ModelGroup(device=device, train=True)
 
@@ -84,12 +84,9 @@ def train_all(test_ratio=0.2, yolo_epoch=0, from_scratch=False, simclr_epoch=0):
     if simclr_epoch != 0:
         analyzer.train_simclr(from_scratch, simclr_epoch)
 
-    v_csv = os.path.join(data_dir, "vessel.csv")
-    b_csv = os.path.join(data_dir, "bronchus.csv")
-    o_csv = os.path.join(data_dir, "overall.csv")
-    vdf = pd.read_csv(v_csv)
-    bdf = pd.read_csv(b_csv)
-    odf = pd.read_csv(o_csv)
+    vdf = pd.read_sql("vessel_annotation", db, 'id')
+    bdf = pd.read_sql("bronchus_annotation", db, 'id')
+    odf = pd.read_sql("overall_annotation", db, 'id')
     indexes = ['a', 'b', 'c', 'd', 'e']
     for ind in indexes:
         if ind in ['a', 'b', 'c']:
