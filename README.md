@@ -32,6 +32,27 @@
    Expand-Archive -path models.zip -DestinationPath ./lung/core/models
    ```
 
+   完成后目录结构：
+
+   ```powershell
+   PS D:\your-base-path\neu-lung2022> dir ./lung/core/models
+
+    Directory: D:\your-base-path\neu-lung2022\lung\core\models
+
+   Mode                 LastWriteTime         Length Name
+   ----                 -------------         ------ ----
+   -a----         20xx/x/xx     xx:xx         184448 background.npy
+   -a----         20xx/x/xx     xx:xx         184448 cytoplasm.npy
+   -a----         20xx/x/xx     xx:xx       14396405 detector_yolov5.pt
+   -a----         20xx/x/xx     xx:xx         184448 nucleus.npy
+   -a----         20xx/x/xx     xx:xx      137785213 simclr_encoder.pth.tar
+   -a----         20xx/x/xx     xx:xx        1464705 vot_reg_a.pk
+   -a----         20xx/x/xx     xx:xx        1844092 vot_reg_b.pk
+   -a----         20xx/x/xx     xx:xx        1799945 vot_reg_c.pk
+   -a----         20xx/x/xx     xx:xx        2065245 vot_reg_d.pk
+   -a----         20xx/x/xx     xx:xx        1794861 vot_reg_e.pk
+   ```
+
 4. 运行服务
 
    ```powershell
@@ -50,7 +71,7 @@
 
    在前端 "批量上传数据" 处选择上传该 `data.zip` 文件作为初始数据
 
-   ![](images/20220606174700.png)  
+   ![批量上传数据](images/20220606174700.png)
 
 ## 参考
 
@@ -58,4 +79,4 @@
 
 - [YOLOv5](https://github.com/ultralytics/yolov5)
 - [SimCLR(Pytorch)](https://github.com/sthalles/SimCLR)
-- 目标检测可视化前后端参考: [Yolov5-Flask-VUE](https://github.com/Sharpiless/Yolov5-Flask-VUE/blob/master/back-end/app.py)
+- 目标检测可视化前后端设计参考: [Yolov5-Flask-VUE](https://github.com/Sharpiless/Yolov5-Flask-VUE/blob/master/back-end/app.py)
