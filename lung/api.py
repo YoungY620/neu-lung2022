@@ -6,7 +6,6 @@ import uuid
 from io import BytesIO
 from operator import itemgetter
 
-import click
 import cv2
 import jsonschema
 import numpy as np
@@ -14,7 +13,7 @@ import pandas as pd
 from flask import Blueprint, jsonify, make_response, request, send_file
 from PIL import Image
 
-from lung.core.analyze import analyze_one, train_all
+from lung.core.analyzer import analyze_one, train_all
 from lung.core.data import DETECTED_CLASSES, DetectionClass, store_data
 from lung.models import BronchusAnnotation, OverallAnnotation, VesselAnnotation
 from lung.utils import _draw_one_box, auto_increase_filepathname, cache_origin_img

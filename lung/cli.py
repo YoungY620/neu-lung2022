@@ -2,7 +2,7 @@ import os
 import click
 from flask import Blueprint
 import requests
-from lung.core.analyze import train_all
+from lung.core.analyzer import train_all
 
 bp = Blueprint('cli', __name__, cli_group='cli')
 

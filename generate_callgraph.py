@@ -4,7 +4,7 @@ from pycallgraph2 import PyCallGraph, Config, GlobbingFilter
 from pycallgraph2.output import GraphvizOutput
 
 from lung import create_app
-from lung.core.analyze import analyze_one, train_all
+from lung.core.analyzer import analyze_one, train_all
 from test import example_analysis_show
 
 im = Image.open(os.path.join(os.path.dirname(__file__), "lung/data/images/3-100-2.jpg"))

@@ -4,4 +4,6 @@ secret_key: "dev"
 sqlalchemy_track_modifications: False
 sqlalchemy_database_uri: "mysql+pymysql://root:123456@localhost:3306/lung"
 
-yolo_workers: 1
+# Max dataloader workers when training YOLO. 
+# Too many workers may lead to crash.
+yolo_workers: 1 
